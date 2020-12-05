@@ -9,8 +9,8 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=hello_remote_world",
-                    "--package=hello_remote_world",
+                    "--bin=ray_tracer",
+                    "--package=ray_tracer",
                     "--manifest-path=Cargo.toml"
                 ],
                 "filter": {
