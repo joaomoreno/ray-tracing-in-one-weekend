@@ -161,15 +161,12 @@ fn main() {
 	for j in (0..image_height).rev() {
 		eprint!("\rScanlines remaining: {0}       ", j);
 		for i in 0..image_width {
-			let r = (i as f64) / ((image_width - 1) as f64);
-			let g = (j as f64) / ((image_height - 1) as f64);
-			let b = 0.25;
-			let ir = (r * 255.999) as u8;
-			let ig = (g * 255.999) as u8;
-			let ib = (b * 255.999) as u8;
-			pixels.push(ir);
-			pixels.push(ig);
-			pixels.push(ib);
+			let pixel_color = Color::new_with(
+				(i as f64) / ((image_width - 1) as f64),
+				(j as f64) / ((image_height - 1) as f64),
+				0.25,
+			);
+			pixels.push_vec(&pixel_color);
 		}
 	}
 	eprintln!("\nDone");
