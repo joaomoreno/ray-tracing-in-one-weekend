@@ -1,12 +1,9 @@
-use std::path::Path;
 use std::fs::File;
 use std::io::BufWriter;
-
-
+use std::path::Path;
 
 fn main() {
 	// Image
-	
 	let image_width = 256;
 	let image_height = 256;
 
@@ -15,20 +12,20 @@ fn main() {
 	let mut pixels = Vec::with_capacity(image_width * image_height);
 
 	for j in (0..image_height).rev() {
+		eprint!("\rScanlines remaining: {0}       ", j);
 		for i in 0..image_width {
 			let r = (i as f64) / ((image_width - 1) as f64);
 			let g = (j as f64) / ((image_height - 1) as f64);
 			let b = 0.25;
-
 			let ir = (r * 255.999) as u8;
 			let ig = (g * 255.999) as u8;
 			let ib = (b * 255.999) as u8;
-
 			pixels.push(ir);
 			pixels.push(ig);
 			pixels.push(ib);
 		}
 	}
+	eprintln!("\nDone");
 
 	// Write image
 
