@@ -1,8 +1,7 @@
 [package]
-name = "hello_remote_world"
+name = "ray_tracer"
 version = "0.1.0"
-authors = ["VS Code <vscode@microsoft.com>"]
+authors = ["João Moreno <joao.moreno@microsoft.com>"]
 
-[lib]
-path ="./src/lib/lib.rs"
-
+[dependencies]
+png = "0.16.7"
