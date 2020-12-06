@@ -3,6 +3,7 @@ use std::io::BufWriter;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub};
 use std::path::Path;
 
+#[derive(Clone)]
 struct Vec3([f64; 3]);
 
 impl Vec3 {
@@ -17,6 +18,15 @@ impl Vec3 {
 	}
 	fn length_squared(&self) -> f64 {
 		self[0].powi(2) + self[1].powi(2) + self[2].powi(2)
+	}
+	fn x(&self) -> f64 {
+		self[0]
+	}
+	fn y(&self) -> f64 {
+		self[1]
+	}
+	fn z(&self) -> f64 {
+		self[2]
 	}
 }
 
@@ -100,6 +110,27 @@ impl Sub for Vec3 {
 	}
 }
 
+impl Sub for &Vec3 {
+	type Output = Vec3;
+	fn sub(self, other: &Vec3) -> Vec3 {
+		Vec3::new_with(self[0] - other[0], self[1] - other[1], self[2] - other[2])
+	}
+}
+
+impl Sub<Vec3> for &Vec3 {
+	type Output = Vec3;
+	fn sub(self, other: Vec3) -> Vec3 {
+		Vec3::new_with(self[0] - other[0], self[1] - other[1], self[2] - other[2])
+	}
+}
+
+impl Sub<&Vec3> for Vec3 {
+	type Output = Vec3;
+	fn sub(self, other: &Vec3) -> Vec3 {
+		Vec3::new_with(self[0] - other[0], self[1] - other[1], self[2] - other[2])
+	}
+}
+
 impl Mul for Vec3 {
 	type Output = Vec3;
 	fn mul(self, other: Vec3) -> Vec3 {
@@ -126,6 +157,13 @@ impl<T: Into<f64>> Mul<T> for &Vec3 {
 impl Mul<Vec3> for f64 {
 	type Output = Vec3;
 	fn mul(self, vec: Vec3) -> Vec3 {
+		vec * self
+	}
+}
+
+impl Mul<&Vec3> for f64 {
+	type Output = Vec3;
+	fn mul(self, vec: &Vec3) -> Vec3 {
 		vec * self
 	}
 }
@@ -171,29 +209,47 @@ type Point3 = Vec3;
 type Color = Vec3;
 
 struct Ray {
-	orig: Point3,
-	dir: Vec3,
+	origin: Point3,
+	direction: Vec3,
 }
 
 impl Ray {
 	fn new() -> Ray {
 		Ray {
-			orig: Point3::new(),
-			dir: Vec3::new(),
+			origin: Point3::new(),
+			direction: Vec3::new(),
 		}
 	}
-	fn new_with(orig: Point3, dir: Vec3) -> Ray {
-		Ray { orig, dir }
+	fn new_with(origin: Point3, direction: Vec3) -> Ray {
+		Ray { origin, direction }
 	}
 	fn at(&self, t: f64) -> Point3 {
-		return &self.orig + (&self.dir * t);
+		return &self.origin + (&self.direction * t);
 	}
+}
+
+fn ray_color(r: &Ray) -> Color {
+	let unit_direction = unit_vector(&r.direction);
+	let t = 0.5 * (unit_direction.y() + 1.0);
+	(1.0 - t) * Color::new_with(1.0, 1.0, 1.0) + t * Color::new_with(0.5, 0.7, 1.0)
 }
 
 fn main() {
 	// Image
-	let image_width = 256;
-	let image_height = 256;
+	const aspect_ratio: f64 = 16.0 / 9.0;
+	const image_width: usize = 400;
+	const image_height: usize = ((image_width as f64) / aspect_ratio) as usize;
+
+	// Camera
+	let viewport_height = 2.0;
+	let viewport_width = aspect_ratio * viewport_height;
+	let focal_length = 1.0;
+
+	let origin = Point3::new();
+	let horizontal = Vec3::new_with(viewport_width, 0.0, 0.0);
+	let vertical = Vec3::new_with(0.0, viewport_height, 0.0);
+	let lower_left_corner =
+		&origin - &horizontal / 2 - &vertical / 2 - Vec3::new_with(0.0, 0.0, focal_length);
 
 	// Render
 
@@ -202,11 +258,14 @@ fn main() {
 	for j in (0..image_height).rev() {
 		eprint!("\rScanlines remaining: {0}       ", j);
 		for i in 0..image_width {
-			let pixel_color = Color::new_with(
-				(i as f64) / ((image_width - 1) as f64),
-				(j as f64) / ((image_height - 1) as f64),
-				0.25,
+			let u = (i as f64) / (image_width as f64 - 1.0);
+			let v = (j as f64) / (image_height as f64 - 1.0);
+			let r = Ray::new_with(
+				origin.clone(),
+				&lower_left_corner + u * &horizontal + v * &vertical - &origin,
 			);
+
+			let pixel_color = ray_color(&r);
 			pixels.push_vec(&pixel_color);
 		}
 	}
