@@ -72,6 +72,27 @@ impl Add for Vec3 {
 	}
 }
 
+impl Add for &Vec3 {
+	type Output = Vec3;
+	fn add(self, other: &Vec3) -> Vec3 {
+		Vec3::new_with(self[0] + other[0], self[1] + other[1], self[2] + other[2])
+	}
+}
+
+impl Add<Vec3> for &Vec3 {
+	type Output = Vec3;
+	fn add(self, other: Vec3) -> Vec3 {
+		Vec3::new_with(self[0] + other[0], self[1] + other[1], self[2] + other[2])
+	}
+}
+
+impl Add<&Vec3> for Vec3 {
+	type Output = Vec3;
+	fn add(self, other: &Vec3) -> Vec3 {
+		Vec3::new_with(self[0] + other[0], self[1] + other[1], self[2] + other[2])
+	}
+}
+
 impl Sub for Vec3 {
 	type Output = Vec3;
 	fn sub(self, other: Vec3) -> Vec3 {
@@ -148,6 +169,26 @@ fn unit_vector(v: &Vec3) -> Vec3 {
 
 type Point3 = Vec3;
 type Color = Vec3;
+
+struct Ray {
+	orig: Point3,
+	dir: Vec3,
+}
+
+impl Ray {
+	fn new() -> Ray {
+		Ray {
+			orig: Point3::new(),
+			dir: Vec3::new(),
+		}
+	}
+	fn new_with(orig: Point3, dir: Vec3) -> Ray {
+		Ray { orig, dir }
+	}
+	fn at(&self, t: f64) -> Point3 {
+		return &self.orig + (&self.dir * t);
+	}
+}
 
 fn main() {
 	// Image
