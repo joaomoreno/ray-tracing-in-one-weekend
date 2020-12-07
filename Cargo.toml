@@ -5,3 +5,4 @@ authors = ["João Moreno <joao.moreno@microsoft.com>"]
 
 [dependencies]
 png = "0.16.7"
+impl_ops = "0.1.1"
