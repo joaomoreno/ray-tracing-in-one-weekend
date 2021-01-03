@@ -6,7 +6,7 @@ use std::io::BufWriter;
 use std::ops;
 use std::path::Path;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 struct Vec3([f64; 3]);
 
 impl Vec3 {
@@ -88,7 +88,7 @@ fn dot(u: &Vec3, v: &Vec3) -> f64 {
 	u[0] * v[0] + u[1] * v[1] + u[2] * v[2]
 }
 
-fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
+fn cross(u: Vec3, v: Vec3) -> Vec3 {
 	Vec3::new_with(
 		u[1] * v[2] - u[2] * v[1],
 		u[2] * v[0] - u[0] * v[2],
@@ -96,7 +96,7 @@ fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
 	)
 }
 
-fn unit_vector(v: &Vec3) -> Vec3 {
+fn unit_vector(v: Vec3) -> Vec3 {
 	v / v.length()
 }
 
@@ -123,20 +123,26 @@ impl Ray {
 	}
 }
 
-fn hit_sphere(center: &Point3, radius: f64, ray: &Ray) -> bool {
+fn hit_sphere(center: &Point3, radius: f64, ray: &Ray) -> f64 {
 	let oc = &ray.origin - center;
 	let a = dot(&ray.direction, &ray.direction);
 	let b = 2.0 * dot(&oc, &ray.direction);
 	let c = dot(&oc, &oc) - radius * radius;
 	let discriminant = b * b - 4.0 * a * c;
-	discriminant > 0.0
+	if discriminant < 0.0 {
+		-1.0
+	} else {
+		(-b - discriminant.sqrt()) / (2.0 * a)
+	}
 }
 
 fn ray_color(r: &Ray) -> Color {
-	if hit_sphere(&Point3::new_with(0.0, 0.0, -1.0), 0.5, r) {
-		return Color::new_with(1.0, 0.0, 0.0);
+	let t = hit_sphere(&Point3::new_with(0.0, 0.0, -1.0), 0.5, r);
+	if t > 0.0 {
+		let n = unit_vector(&r.at(t) - &Vec3::new_with(0.0, 0.0, -1.0));
+		return 0.5 * Color::new_with(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
 	}
-	let unit_direction = unit_vector(&r.direction);
+	let unit_direction = unit_vector(r.direction);
 	let t = 0.5 * (unit_direction.y() + 1.0);
 	(1.0 - t) * Color::new_with(1.0, 1.0, 1.0) + t * Color::new_with(0.5, 0.7, 1.0)
 }
